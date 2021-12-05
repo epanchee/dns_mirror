@@ -22,20 +22,25 @@ dns-mirror --help
 DNS traffic mirroring daemon 0.1.0
 
 USAGE:
-    dns-mirror [FLAGS] --dev <dev> --ip <ip>
+    dns-mirror [FLAGS] [OPTIONS] --dev <dev> --ip <ip>
 
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
         --verbose    Show debug messages
+
+OPTIONS:
+    -d, --dev <dev>      Device to sniff
+    -i, --ip <ip>        DNS server IP
+    -p, --port <port>    DNS server port. Default: 53
 ```
 
 ```bash
 ~ # dns-mirror -d br0 -i 10.30.1.100  --verbose
- 2021-12-05T14:02:28.440Z DEBUG dns_mirror > Dns from 10.30.1.43 mirrored to 10.30.1.100
- 2021-12-05T14:02:28.833Z DEBUG dns_mirror > Dns from 10.30.1.38 mirrored to 10.30.1.100
- 2021-12-05T14:02:49.191Z DEBUG dns_mirror > Dns from 10.30.1.87 mirrored to 10.30.1.100
- 2021-12-05T14:03:26.595Z DEBUG dns_mirror > Dns from 10.30.1.98 mirrored to 10.30.1.100
+ 2021-12-05T14:02:28.440Z DEBUG dns_mirror > Dns from 10.30.1.43 mirrored to 10.30.1.100:53
+ 2021-12-05T14:02:28.833Z DEBUG dns_mirror > Dns from 10.30.1.38 mirrored to 10.30.1.100:53
+ 2021-12-05T14:02:49.191Z DEBUG dns_mirror > Dns from 10.30.1.87 mirrored to 10.30.1.100:53
+ 2021-12-05T14:03:26.595Z DEBUG dns_mirror > Dns from 10.30.1.98 mirrored to 10.30.1.100:53
  ...
  ```
 

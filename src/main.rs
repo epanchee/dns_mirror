@@ -8,7 +8,7 @@ use std::net::UdpSocket;
 
 use pcap::Capture;
 
-fn start_mirror(dns_ip_str: &str, sniff_dev: &str) {
+fn start_mirror(dns_ip_str: &str, dns_port: &str, sniff_dev: &str) {
     let mut cap = Capture::from_device(sniff_dev)
         .unwrap()
         .immediate_mode(true)
@@ -18,8 +18,8 @@ fn start_mirror(dns_ip_str: &str, sniff_dev: &str) {
     let cap_filter = format!("udp dst port 53 and host not {}", dns_ip_str);
     cap.filter(&cap_filter, true).unwrap();
 
-    let socket = UdpSocket::bind("192.168.2.1:34254").expect("Couldn't create UDP socket");
-    let remote_socket = format!("{}:53", dns_ip_str);
+    let socket = UdpSocket::bind("0.0.0.0:34254").expect("Couldn't create UDP socket");
+    let remote_socket = format!("{}:{}", dns_ip_str, dns_port);
 
     loop {
         let packet_data = cap.next().unwrap().data;
@@ -29,8 +29,8 @@ fn start_mirror(dns_ip_str: &str, sniff_dev: &str) {
         let (body, _) = pktparse::udp::parse_udp_header(body).unwrap();
 
         debug!(
-            "Dns from {:?} mirrored to {}",
-            ip_header.source_addr, dns_ip_str
+            "Dns from {:?} mirrored to {}:{}",
+            ip_header.source_addr, dns_ip_str, dns_port
         );
 
         socket
@@ -45,15 +45,17 @@ fn main() {
         (version: "0.1.0")
         (@arg dev: +required -d --dev +takes_value "Device to sniff")
         (@arg ip: +required -i --ip +takes_value "DNS server IP")
+        (@arg port: -p --port +takes_value "DNS server port. Default: 53")
         (@arg verbose: --verbose "Show debug messages")
     )
     .get_matches();
     let ip_addr = matches.value_of("ip").unwrap();
+    let port = matches.value_of("port").unwrap_or("53");
     let dev = matches.value_of("dev").unwrap();
     if matches.is_present("verbose"){
         pretty_env_logger::formatted_timed_builder()
             .parse_filters("debug")
             .init();
     }
-    start_mirror(ip_addr, dev);
+    start_mirror(ip_addr, port, dev);
 }
