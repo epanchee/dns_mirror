@@ -18,7 +18,7 @@ fn start_mirror(dns_ip_str: &str, dns_port: &str, sniff_dev: &str) {
     let cap_filter = format!("udp dst port 53 and host not {}", dns_ip_str);
     cap.filter(&cap_filter, true).unwrap();
 
-    let socket = UdpSocket::bind("0.0.0.0:34254").expect("Couldn't create UDP socket");
+    let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't create UDP socket");
     let remote_socket = format!("{}:{}", dns_ip_str, dns_port);
 
     loop {
