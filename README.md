@@ -46,6 +46,7 @@ FLAGS:
 - At the moment dns sniffs only udp packets sent to dst port 53. Thus, it does not monitor tricky users who use
   customized dns requests.
 - As well as it can not sniff DoH/DoT requests.
+- TCP DNS requests are not covered yet
 - It does not check that the received packet is actually DNS-packet.
 
 ### Build
