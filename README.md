@@ -63,7 +63,7 @@ Use powerful [cross](https://github.com/rust-embedded/cross) to build it.
 #### How to build
 
 ```bash
-( cd build docker build; -t crossbuild_mipsel:local . )
+( cd build; docker build -t crossbuild_mipsel:local . )
 
 cat >> cat ~/.cargo/config
 [target.mipsel-unknown-linux-gnu]
