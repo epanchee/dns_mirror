@@ -4,11 +4,12 @@ extern crate clap;
 extern crate log;
 extern crate pretty_env_logger;
 
-use std::net::UdpSocket;
+use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+use std::str::FromStr;
 
 use pcap::Capture;
 
-fn start_mirror(dns_ip_str: &str, dns_port: &str, sniff_dev: &str) {
+fn start_mirror(dns_ip_str: Ipv4Addr, dns_port: u16, sniff_dev: &str) {
     let mut cap = Capture::from_device(sniff_dev)
         .unwrap()
         .immediate_mode(true)
@@ -19,7 +20,8 @@ fn start_mirror(dns_ip_str: &str, dns_port: &str, sniff_dev: &str) {
     cap.filter(&cap_filter, true).unwrap();
 
     let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't create UDP socket");
-    let remote_socket = format!("{}:{}", dns_ip_str, dns_port);
+    let remote_socket =
+        SocketAddr::from_str(format!("{}:{}", dns_ip_str, dns_port).as_str()).unwrap();
 
     loop {
         let packet_data = cap.next().unwrap().data;
@@ -33,9 +35,9 @@ fn start_mirror(dns_ip_str: &str, dns_port: &str, sniff_dev: &str) {
             ip_header.source_addr, dns_ip_str, dns_port
         );
 
-        socket
-            .send_to(body, &remote_socket)
-            .unwrap_or_else(|_| panic!("This could never happen since UDP proto is stateless"));
+        if let Err(msg) = socket.send_to(body, &remote_socket) {
+            error!("Failed to send UDP packet. Error: {:?}", msg)
+        }
     }
 }
 
@@ -49,10 +51,14 @@ fn main() {
         (@arg verbose: --verbose "Show debug messages")
     )
     .get_matches();
-    let ip_addr = matches.value_of("ip").unwrap();
-    let port = matches.value_of("port").unwrap_or("53");
+    let ip_addr: Ipv4Addr = matches.value_of("ip").unwrap().parse().unwrap();
+    let port: u16 = matches
+        .value_of("port")
+        .unwrap_or("53")
+        .parse()
+        .expect("Port should be of 'u16' type");
     let dev = matches.value_of("dev").unwrap();
-    if matches.is_present("verbose"){
+    if matches.is_present("verbose") {
         pretty_env_logger::formatted_timed_builder()
             .parse_filters("debug")
             .init();
