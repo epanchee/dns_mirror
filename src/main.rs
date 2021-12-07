@@ -9,19 +9,19 @@ use std::str::FromStr;
 
 use pcap::Capture;
 
-fn start_mirror(dns_ip_str: Ipv4Addr, dns_port: u16, sniff_dev: &str) {
+fn start_mirror(dns_ip: Ipv4Addr, dns_port: u16, sniff_dev: &str) {
     let mut cap = Capture::from_device(sniff_dev)
         .unwrap()
         .immediate_mode(true)
         .promisc(true)
         .open()
         .unwrap();
-    let cap_filter = format!("udp dst port 53 and host not {}", dns_ip_str);
+    let cap_filter = format!("udp dst port 53 and host not {}", dns_ip);
     cap.filter(&cap_filter, true).unwrap();
 
     let socket = UdpSocket::bind("0.0.0.0:0").expect("Couldn't create UDP socket");
     let remote_socket =
-        SocketAddr::from_str(format!("{}:{}", dns_ip_str, dns_port).as_str()).unwrap();
+        SocketAddr::from_str(format!("{}:{}", dns_ip, dns_port).as_str()).unwrap();
 
     loop {
         let packet_data = cap.next().unwrap().data;
@@ -32,7 +32,7 @@ fn start_mirror(dns_ip_str: Ipv4Addr, dns_port: u16, sniff_dev: &str) {
 
         debug!(
             "Dns from {:?} mirrored to {}:{}",
-            ip_header.source_addr, dns_ip_str, dns_port
+            ip_header.source_addr, dns_ip, dns_port
         );
 
         if let Err(msg) = socket.send_to(body, &remote_socket) {
